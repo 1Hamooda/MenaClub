@@ -1,1 +1,9 @@
+<<<<<<< HEAD
 { "scripts": { "dev": "next dev" }, "dependencies": { "lucide-react": "^0.577.0", "next": "^14.0.0", "react": "^18.0.0", "react-dom": "^18.0.0" } } 
+=======
+{
+  "dependencies": {
+    "lucide-react": "^0.577.0"
+  }
+}
+>>>>>>> bc7839e865ef8e0979a53b707b7308a4b1f76be9
