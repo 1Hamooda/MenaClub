@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   Home, Calendar, Bell, Briefcase, Users, BarChart3,
-  FileText, Settings, LogOut, Menu, X, ChevronRight,
+  FileText, Settings, LogOut, Menu, ChevronRight,
   ClipboardCheck, Award, Send, Key, Download
 } from "lucide-react";
 
@@ -52,6 +51,18 @@ const roleLabels: Record<Role, string> = {
   admin: "Admin",
 };
 
+const settingsHref: Record<Role, string> = {
+  member: "/member/settings",
+  volunteer: "/volunteer/settings",
+  admin: "/admin/settings",
+};
+
+const profileHref: Record<Role, string> = {
+  member: "/member/profile",
+  volunteer: "/volunteer/profile",
+  admin: "/admin/profile",
+};
+
 export default function DashboardLayout({
   role,
   children,
@@ -74,13 +85,33 @@ export default function DashboardLayout({
       >
         <div className="flex flex-col h-full">
 
-          
-
           {/* Role Badge */}
           <div className="px-4 py-3">
             <span className="bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full">
               {roleLabels[role]} Panel
             </span>
+          </div>
+
+          {/* Profile - أول خانة فوق الداشبورد */}
+          <div className="px-3 mb-2">
+            <Link
+              href={profileHref[role]}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                pathname === profileHref[role]
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <div className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                pathname === profileHref[role]
+                  ? "bg-white/20 text-white"
+                  : "bg-primary/10 text-primary"
+              }`}>
+                AM
+              </div>
+              <span className="flex-1">My Profile</span>
+              {pathname === profileHref[role] && <ChevronRight className="h-3 w-3" />}
+            </Link>
           </div>
 
           {/* Nav Items */}
@@ -115,15 +146,20 @@ export default function DashboardLayout({
             })}
           </nav>
 
-          {/* Bottom Links */}
-          <div className="p-3 border-t space-y-1">
+          {/* Bottom Links - ثابتة بقاع الشاشة */}
+          <div className="px-3 py-3 border-t space-y-1">
             <Link
-              href="/member/profile"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+              href={settingsHref[role]}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
+                pathname === settingsHref[role]
+                  ? "bg-primary text-white"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
             >
               <Settings className="h-4 w-4" />
               <span>Settings</span>
             </Link>
+
             <Link
               href="/"
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-colors"
@@ -158,9 +194,11 @@ export default function DashboardLayout({
               <Bell className="h-4 w-4" />
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
             </button>
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
-              AM
-            </div>
+            <Link href={profileHref[role]}>
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold cursor-pointer hover:bg-primary/20 transition-colors">
+                AM
+              </div>
+            </Link>
           </div>
         </header>
 
