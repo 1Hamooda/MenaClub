@@ -74,15 +74,7 @@ export default function DashboardLayout({
       >
         <div className="flex flex-col h-full">
 
-          {/* Logo */}
-          <div className="p-4 border-b flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <Image src="/logo.png" alt="MENA Club" width={32} height={32} quality={200} unoptimized className="h-8 w-auto" />
-            </Link>
-            <button className="lg:hidden" onClick={() => setSidebarOpen(false)}>
-              <X className="h-5 w-5" />
-            </button>
-          </div>
+          
 
           {/* Role Badge */}
           <div className="px-4 py-3">
