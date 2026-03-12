@@ -24,7 +24,7 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.jpeg" alt="MENA Club" width={40} height={40} className="h-10 w-auto" />
+          <Image src="/logo.png" alt="MENA Club" width={40} height={40} quality={200} unoptimized className="h-10 w-auto" />
         </Link>
 
         {/* Desktop Links */}
@@ -35,7 +35,7 @@ export default function Navbar() {
               href={link.href}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-gray-100 ${
                 pathname === link.href
-                  ? "text-blue-700 font-semibold"
+                  ? "text-primary font-semibold"
                   : "text-gray-600"
               }`}
             >
@@ -54,7 +54,7 @@ export default function Navbar() {
           </Link>
           <Link
             href="/register"
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-700 text-white hover:bg-blue-800 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:bg-primary transition-colors"
           >
             Join Now
           </Link>
@@ -77,7 +77,7 @@ export default function Navbar() {
               onClick={() => setOpen(false)}
               className={`block px-4 py-2 rounded-lg text-sm font-medium ${
                 pathname === link.href
-                  ? "bg-blue-50 text-blue-700"
+                  ? "bg-primary/10 text-primary"
                   : "text-gray-600"
               }`}
             >
@@ -93,7 +93,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/register"
-              className="flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium bg-blue-700 text-white hover:bg-blue-800 transition-colors"
+              className="flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:bg-primary transition-colors"
             >
               Join Now
             </Link>

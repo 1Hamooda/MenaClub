@@ -3,110 +3,148 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { Player } from "@lottiefiles/react-lottie-player";
 
 export default function RegisterPage() {
   const [role, setRole] = useState("member");
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100/30 p-4">
-      <div className="w-full max-w-md p-8 rounded-2xl bg-white border border-gray-200 shadow-sm">
+    <div style={{ display: "flex", minHeight: "100vh" }}>
 
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Image src="/logo.jpeg" alt="MENA Club" width={56} height={56} className="h-14 w-auto mx-auto mb-4" />
-          <h1 className="text-2xl font-bold">
-            Join <span className="text-blue-700">MENA</span> Club
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">Create your account</p>
-        </div>
-
-        {/* Form */}
-        <form className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-sm font-medium text-gray-700">First Name</label>
-              <input
-                placeholder="Ahmad"
-                className="mt-1.5 w-full px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Last Name</label>
-              <input
-                placeholder="Khalil"
-                className="mt-1.5 w-full px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              className="mt-1.5 w-full px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="mt-1.5 w-full px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Role Selector */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-3 block">I want to join as</label>
-            <div className="flex gap-3">
-
-              <button
-                type="button"
-                onClick={() => setRole("member")}
-                className={`flex-1 p-4 text-center rounded-xl border-2 transition-colors ${
-                  role === "member"
-                    ? "border-blue-700 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <p className="font-semibold text-sm">Member</p>
-                <p className="text-xs text-gray-500">Join events and grow</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setRole("volunteer")}
-                className={`flex-1 p-4 text-center rounded-xl border-2 transition-colors ${
-                  role === "volunteer"
-                    ? "border-blue-700 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <p className="font-semibold text-sm">Volunteer</p>
-                <p className="text-xs text-gray-500">Help and contribute</p>
-              </button>
-
-            </div>
-          </div>
-
-          <Link href="/member/profile">
-            <button
-              type="button"
-              className="w-full bg-blue-700 text-white py-3 rounded-xl font-semibold hover:bg-blue-800 transition mt-2"
-            >
-              Create Account
-            </button>
-          </Link>
-        </form>
-
-        {/* Footer */}
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Already have an account?{" "}
-          <Link href="/login" className="text-blue-700 font-medium hover:underline">Sign in</Link>
+      {/* Left Side — Lottie Animation */}
+      <div style={{
+        flex: 1,
+        background: "linear-gradient(135deg, #2e8673 0%, #211f21 100%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "64px",
+      }} className="hidden md:flex">
+        <Player
+          autoplay
+          loop
+          src="/animation.json"
+          style={{ width: "380px", height: "380px" }}
+        />
+        <h2 style={{ color: "#ffffff", fontSize: "1.75rem", fontWeight: "700", marginTop: "32px", textAlign: "center" }}>
+          Join <span style={{ color: "#66bdab" }}>MENA</span> Club
+        </h2>
+        <p style={{ color: "#b2ddd5", fontSize: "1rem", marginTop: "12px", textAlign: "center", maxWidth: "320px", lineHeight: "1.6" }}>
+          Be part of a growing community of youth leaders across the Middle East and North Africa.
         </p>
+      </div>
 
+      {/* Right Side — Form */}
+      <div style={{
+        flex: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "64px 80px",
+        backgroundColor: "#ffffff",
+        overflowY: "auto",
+      }}>
+        <div style={{ width: "100%", maxWidth: "420px" }}>
+
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: "40px" }}>
+            <Image src="/logo.png" alt="MENA Club" width={56} height={56} quality={200} unoptimized className="h-14 w-auto mx-auto mb-4" />
+            <h1 style={{ fontSize: "1.75rem", fontWeight: "800", marginBottom: "8px" }}>
+              Join <span style={{ color: "#2e8673" }}>MENA</span> Club
+            </h1>
+            <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>Create your account</p>
+          </div>
+
+          {/* Form */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+
+            {/* Name Row */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              <div>
+                <label style={{ fontSize: "0.875rem", fontWeight: "500", color: "#374151", display: "block", marginBottom: "6px" }}>First Name</label>
+                <input
+                  placeholder="Ahmad"
+                  style={{ width: "100%", padding: "12px 16px", border: "1px solid #d1d5db", borderRadius: "12px", fontSize: "0.875rem", outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: "0.875rem", fontWeight: "500", color: "#374151", display: "block", marginBottom: "6px" }}>Last Name</label>
+                <input
+                  placeholder="Khalil"
+                  style={{ width: "100%", padding: "12px 16px", border: "1px solid #d1d5db", borderRadius: "12px", fontSize: "0.875rem", outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ fontSize: "0.875rem", fontWeight: "500", color: "#374151", display: "block", marginBottom: "6px" }}>Email</label>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                style={{ width: "100%", padding: "12px 16px", border: "1px solid #d1d5db", borderRadius: "12px", fontSize: "0.875rem", outline: "none", boxSizing: "border-box" }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: "0.875rem", fontWeight: "500", color: "#374151", display: "block", marginBottom: "6px" }}>Password</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                style={{ width: "100%", padding: "12px 16px", border: "1px solid #d1d5db", borderRadius: "12px", fontSize: "0.875rem", outline: "none", boxSizing: "border-box" }}
+              />
+            </div>
+
+            {/* Role Selector */}
+            <div>
+              <label style={{ fontSize: "0.875rem", fontWeight: "500", color: "#374151", display: "block", marginBottom: "10px" }}>I want to join as</label>
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button
+                  type="button"
+                  onClick={() => setRole("member")}
+                  style={{
+                    flex: 1, padding: "16px", textAlign: "center", borderRadius: "12px", cursor: "pointer",
+                    border: role === "member" ? "2px solid #2e8673" : "2px solid #e5e7eb",
+                    backgroundColor: role === "member" ? "#f0f9f7" : "#ffffff",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  <p style={{ fontWeight: "600", fontSize: "0.875rem", marginBottom: "2px" }}>Member</p>
+                  <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Join events and grow</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("volunteer")}
+                  style={{
+                    flex: 1, padding: "16px", textAlign: "center", borderRadius: "12px", cursor: "pointer",
+                    border: role === "volunteer" ? "2px solid #2e8673" : "2px solid #e5e7eb",
+                    backgroundColor: role === "volunteer" ? "#f0f9f7" : "#ffffff",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  <p style={{ fontWeight: "600", fontSize: "0.875rem", marginBottom: "2px" }}>Volunteer</p>
+                  <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Help and contribute</p>
+                </button>
+              </div>
+            </div>
+
+            <Link href="/member/profile">
+              <button
+                type="button"
+                style={{ width: "100%", backgroundColor: "#2e8673", color: "#ffffff", padding: "14px", borderRadius: "12px", fontWeight: "600", fontSize: "1rem", border: "none", cursor: "pointer", marginTop: "4px" }}
+              >
+                Create Account
+              </button>
+            </Link>
+          </div>
+
+          {/* Footer */}
+          <p style={{ textAlign: "center", fontSize: "0.875rem", color: "#6b7280", marginTop: "28px" }}>
+            Already have an account?{" "}
+            <Link href="/login" style={{ color: "#2e8673", fontWeight: "500" }}>Sign in</Link>
+          </p>
+
+        </div>
       </div>
     </div>
   );

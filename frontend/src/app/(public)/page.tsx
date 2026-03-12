@@ -3,7 +3,7 @@ export default function HomePage() {
     <main>
 
       {/* Hero Section */}
-      <section className="bg-blue-700 text-white py-24 px-6 text-center">
+      <section className="bg-primary text-white py-24 px-6 text-center">
         <h1 className="text-4xl font-bold mb-4">
           Welcome to MENA Alliances
         </h1>
@@ -14,7 +14,7 @@ export default function HomePage() {
         <div className="flex justify-center gap-4">
           <a
             href="/register"
-            className="bg-white text-blue-700 font-semibold px-6 py-3 rounded-lg hover:bg-blue-50 transition"
+            className="bg-white text-primary font-semibold px-6 py-3 rounded-lg hover:bg-primary/10 transition"
           >
             Join Us
           </a>
