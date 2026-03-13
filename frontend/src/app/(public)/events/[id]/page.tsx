@@ -1,233 +1,312 @@
-"use client"
+"use client";
 
-import { useParams } from "next/navigation"
-import Link from "next/link"
-import { motion } from "framer-motion"
-import { ArrowLeft, Calendar, MapPin, Users, Clock, Tag } from "lucide-react"
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { Calendar, MapPin, Users, Clock, ArrowLeft, ArrowRight, Share2, Bookmark, Check } from "lucide-react";
+import { useState } from "react";
 
-type Event = {
-  id: number
-  title: string
-  category: string
-  date: string
-  location: string
-  spots: number
-  roles: string[]
-  status: "Upcoming" | "Open" | "Closed"
-  description: string
-  duration: string
-  image: string
-}
-
-const DUMMY_EVENTS: Event[] = [
-  {
-    id: 1,
+const eventData: Record<string, any> = {
+  "1": {
     title: "Bisawa3dina Environmental Initiative",
+    date: "February 2023",
+    time: "9:00 AM – 4:00 PM",
+    location: "Palestine Polytechnic University, Hebron",
     category: "Community",
-    date: "Feb 2023",
-    location: "Palestine Polytechnic University",
     spots: 40,
-    roles: ["Coordinator", "Volunteer"],
+    emoji: "🌱",
+    gradient: "linear-gradient(135deg, #2e8673 0%, #469d8b 100%)",
     status: "Closed",
-    description: "A community-driven environmental initiative in collaboration with PPU. We planted 100 trees, hung awareness posters, cleaned the campus, painted facilities, and provided water stations for stray cats.",
-    duration: "1 Day",
-    image: "/events/bisawadina.jpg",
+    description: "A community-driven environmental initiative bringing together students and volunteers to clean and beautify the campus and surrounding areas. Participants will plant trees, collect waste, and raise awareness about environmental sustainability.",
+    roles: ["Coordinator", "Volunteer", "Photographer", "Logistics"],
+    highlights: ["Tree planting drive", "Campus clean-up", "Awareness campaign", "Community networking"],
   },
-  {
-    id: 2,
+  "2": {
     title: "Iftar for International Students",
-    category: "Social",
     date: "Ramadan 2024",
-    location: "Palestine Polytechnic University",
-    spots: 70,
-    roles: ["Organizer", "Host"],
-    status: "Closed",
-    description: "A warm Ramadan iftar gathering organized for international students, with home-cooked meals prepared by students' mothers. This event was held for two consecutive years to strengthen social bonds.",
-    duration: "1 Evening",
-    image: "/events/iftar.jpg",
-  },
-  {
-    id: 3,
-    title: "MENA Reads — Reading Club",
-    category: "Workshop",
-    date: "Ongoing",
-    location: "Hebron",
-    spots: 30,
-    roles: ["Facilitator", "Speaker"],
-    status: "Open",
-    description: "A reading club for thinkers and book lovers, promoting culture through book discussions, text analysis workshops, and critical thinking sessions.",
-    duration: "Weekly",
-    image: "/events/reading.jpg",
-  },
-  {
-    id: 4,
-    title: "Tawjihi Celebration Day",
+    time: "6:00 PM – 9:00 PM",
+    location: "Palestine Polytechnic University, Hebron",
     category: "Social",
-    date: "Summer 2024",
-    location: "Hebron",
-    spots: 50,
-    roles: ["Coordinator", "Volunteer"],
+    spots: 70,
+    emoji: "🌙",
+    gradient: "linear-gradient(135deg, #211f21 0%, #2e8673 100%)",
     status: "Closed",
-    description: "A fun recreational day organized for Tawjihi students after their exams, aimed at relieving stress and boosting their morale.",
-    duration: "1 Day",
-    image: "/events/tawjihi.jpg",
+    description: "A warm Iftar gathering welcoming international students studying in Palestine. An evening of food, culture sharing, and community building across borders.",
+    roles: ["Organizer", "Host", "Chef Volunteer", "Greeter"],
+    highlights: ["Multi-cultural food", "Cultural exchange", "Guest speakers", "Entertainment"],
   },
-  {
-    id: 5,
-    title: "Feed & Benefit Initiative",
-    category: "Workshop",
+  "3": {
+    title: "MENA Reads — Reading Club",
     date: "Ongoing",
-    location: "Hebron",
-    spots: 35,
-    roles: ["Mentor", "Presenter"],
+    time: "Every Friday, 4:00 PM",
+    location: "Hebron Central Library",
+    category: "Workshop",
+    spots: 30,
+    emoji: "📚",
+    gradient: "linear-gradient(135deg, #0d0b08 0%, #2e8673 100%)",
     status: "Open",
-    description: "Providing a study space for students and entrepreneurs in exchange for hosting workshops and community initiatives that benefit society.",
-    duration: "Ongoing",
-    image: "/events/feed.jpg",
+    description: "A weekly reading club for curious minds. Each session focuses on a new chapter or book, followed by open discussion and critical thinking exercises. All reading levels welcome.",
+    roles: ["Facilitator", "Speaker", "Note-taker", "Coordinator"],
+    highlights: ["Weekly sessions", "Open discussion", "Critical thinking", "Book recommendations"],
   },
-  {
-    id: 6,
+  "4": {
+    title: "Tawjihi Celebration Day",
+    date: "Summer 2024",
+    time: "10:00 AM – 8:00 PM",
+    location: "Hebron Cultural Center",
+    category: "Social",
+    spots: 50,
+    emoji: "🎓",
+    gradient: "linear-gradient(135deg, #469d8b 0%, #57ad9b 100%)",
+    status: "Closed",
+    description: "Celebrating the hard work and achievements of Tawjihi graduates across Hebron. A full day of festivities, recognition ceremonies, and community pride.",
+    roles: ["Coordinator", "Volunteer", "MC", "Setup Crew"],
+    highlights: ["Recognition ceremony", "Live entertainment", "Community celebration", "Photography"],
+  },
+  "5": {
+    title: "Feed & Benefit Initiative",
+    date: "Ongoing",
+    time: "Saturdays, 10:00 AM",
+    location: "Various locations, Hebron",
+    category: "Workshop",
+    spots: 35,
+    emoji: "🤝",
+    gradient: "linear-gradient(135deg, #2e8673 0%, #0d0b08 100%)",
+    status: "Open",
+    description: "A recurring initiative combining food distribution with skill-building workshops. Volunteers teach practical skills to community members while sharing meals.",
+    roles: ["Mentor", "Presenter", "Logistics", "Volunteer"],
+    highlights: ["Skill workshops", "Food distribution", "Community impact", "Recurring program"],
+  },
+  "6": {
     title: "Afaq Forum — Youth Clubs Meetup",
-    category: "Conference",
     date: "2025",
-    location: "Palestine Polytechnic University",
+    time: "9:00 AM – 6:00 PM",
+    location: "Palestine Polytechnic University, Hebron",
+    category: "Conference",
     spots: 110,
-    roles: ["Moderator", "Coordinator", "Usher"],
+    emoji: "🌍",
+    gradient: "linear-gradient(135deg, #0d0b08 0%, #333133 40%, #2e8673 100%)",
     status: "Upcoming",
-    description: "A large forum bringing together all youth clubs at PPU, aiming to introduce students to club opportunities, develop skills, encourage community engagement, and build a collaborative youth community.",
-    duration: "1 Day",
-    image: "/events/afaq.jpg",
+    description: "The flagship annual forum bringing together youth club representatives from across Palestine. A day of panels, workshops, and inter-club networking to align on youth development goals.",
+    roles: ["Moderator", "Coordinator", "Usher", "Media Team", "Registration"],
+    highlights: ["Keynote speakers", "Panel discussions", "Inter-club networking", "Awards ceremony"],
   },
-]
+};
 
-const STATUS_COLORS = {
-  Upcoming: "bg-gray-100 text-gray-700",
-  Open: "bg-teal-100 text-teal-700",
-  Closed: "bg-red-100 text-red-600",
-}
+const STATUS_CONFIG: Record<string, { bg: string; color: string; dot: string }> = {
+  Upcoming: { bg: "#dbeafe", color: "#1d4ed8", dot: "#3b82f6" },
+  Open:     { bg: "#dcfce7", color: "#15803d", dot: "#22c55e" },
+  Closed:   { bg: "#f3f4f6", color: "#6b7280", dot: "#9ca3af" },
+};
 
-const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0 } }
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1, y: 0,
+    transition: { delay: i * 0.08, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as [number,number,number,number] },
+  }),
+};
 
-export default function EventDetailPage() {
-  const { id } = useParams()
-  const event = DUMMY_EVENTS.find((e) => e.id === Number(id))
+export default function EventDetail({ params }: { params: { id: string } }) {
+  const event = eventData[params.id] || eventData["1"];
+  const statusCfg = STATUS_CONFIG[event.status];
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [applied, setApplied] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
 
-  if (!event) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <p className="text-muted-foreground text-lg">Event not found.</p>
-        <Link href="/events">
-          <button className="gradient-teal text-primary-foreground px-6 py-2 rounded-full text-sm">
-            Back to Events
-          </button>
-        </Link>
-      </div>
-    )
-  }
+  const handleApply = () => {
+    if (selectedRole) setApplied(true);
+  };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div style={{ minHeight: "100vh", backgroundColor: "#ffffff" }}>
 
-      {/* Back Button */}
-      <div className="max-w-4xl mx-auto px-6 pt-8">
-        <Link href="/events">
-          <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Back to Events
-          </button>
-        </Link>
+      {/* Hero Banner */}
+      <div style={{ background: event.gradient, padding: "48px 24px 80px", position: "relative", overflow: "hidden" }}>
+        {/* bg decoration */}
+        <div style={{ position: "absolute", top: "-60px", right: "-60px", width: "300px", height: "300px", borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.05)" }} />
+        <div style={{ position: "absolute", bottom: "-40px", left: "-40px", width: "200px", height: "200px", borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.04)" }} />
+
+        <div style={{ maxWidth: "900px", margin: "0 auto", position: "relative" }}>
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+            <Link href="/events" style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "rgba(255,255,255,0.75)", fontSize: "0.875rem", textDecoration: "none", marginBottom: "28px" }}>
+              <ArrowLeft size={15} /> Back to Events
+            </Link>
+          </motion.div>
+
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.5 }}>
+              <div style={{ fontSize: "4rem", marginBottom: "16px", filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.2))" }}>{event.emoji}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px", flexWrap: "wrap" }}>
+                <span style={{ backgroundColor: "rgba(255,255,255,0.2)", color: "#ffffff", fontSize: "0.72rem", fontWeight: "700", padding: "4px 12px", borderRadius: "20px", letterSpacing: "0.06em", backdropFilter: "blur(4px)" }}>
+                  {event.category.toUpperCase()}
+                </span>
+                <span style={{ backgroundColor: statusCfg.bg, color: statusCfg.color, fontSize: "0.72rem", fontWeight: "700", padding: "4px 12px", borderRadius: "20px", display: "flex", alignItems: "center", gap: "5px" }}>
+                  <span style={{ height: "6px", width: "6px", borderRadius: "50%", backgroundColor: statusCfg.dot }} />
+                  {event.status}
+                </span>
+              </div>
+              <h1 style={{ fontSize: "clamp(1.5rem, 4vw, 2.25rem)", fontWeight: "900", color: "#ffffff", lineHeight: 1.15, letterSpacing: "-0.02em", maxWidth: "600px" }}>
+                {event.title}
+              </h1>
+            </motion.div>
+
+            {/* Bookmark */}
+            <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+              onClick={() => setBookmarked(!bookmarked)}
+              style={{ padding: "10px", borderRadius: "12px", border: "none", backgroundColor: bookmarked ? "#ffffff" : "rgba(255,255,255,0.15)", backdropFilter: "blur(4px)", cursor: "pointer", color: bookmarked ? "#2e8673" : "#ffffff", flexShrink: 0 }}>
+              <Bookmark size={20} fill={bookmarked ? "#2e8673" : "none"} />
+            </motion.button>
+          </div>
+        </div>
       </div>
 
-      {/* Event Image */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={fadeUp}
-        transition={{ duration: 0.5 }}
-        className="max-w-4xl mx-auto px-6 mt-6"
-      >
-        <div className="relative h-72 rounded-2xl overflow-hidden">
-          <img
-            src={event.image}
-            alt={event.title}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none"
-            }}
-          />
-          <div className="absolute inset-0 gradient-teal opacity-60" />
-          <span className={`absolute top-4 right-4 text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLORS[event.status]}`}>
-            {event.status}
-          </span>
-        </div>
-      </motion.div>
+      {/* Content */}
+      <div style={{ maxWidth: "900px", margin: "-32px auto 0", padding: "0 24px 80px", position: "relative" }}>
 
-      {/* Event Details */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={fadeUp}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="max-w-4xl mx-auto px-6 mt-8 grid grid-cols-1 md:grid-cols-3 gap-8 pb-16"
-      >
-        {/* Left: Main Info */}
-        <div className="md:col-span-2 space-y-6">
-          <div>
-            <span className="inline-block rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground mb-2">
-              {event.category}
-            </span>
-            <h1 className="text-3xl font-bold text-foreground">{event.title}</h1>
+        {/* Info cards row */}
+        <motion.div custom={0} initial="hidden" animate="visible" variants={fadeUp}
+          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "32px" }}
+        >
+          {[
+            { icon: Calendar, label: "Date", value: event.date },
+            { icon: Clock,    label: "Time", value: event.time },
+            { icon: MapPin,   label: "Location", value: event.location },
+          ].map((item, i) => (
+            <div key={i} style={{ backgroundColor: "#ffffff", borderRadius: "16px", padding: "18px", border: "1px solid #f0f0f0", boxShadow: "0 4px 16px rgba(0,0,0,0.05)", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ height: "40px", width: "40px", borderRadius: "12px", backgroundColor: "#f0f9f7", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <item.icon size={18} style={{ color: "#2e8673" }} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontSize: "0.7rem", color: "#9ca3af", fontWeight: "600", letterSpacing: "0.04em" }}>{item.label.toUpperCase()}</p>
+                <p style={{ fontSize: "0.85rem", fontWeight: "600", color: "#0d0b08", marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.value}</p>
+              </div>
+            </div>
+          ))}
+        </motion.div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "28px", alignItems: "start" }}>
+
+          {/* Left column */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+
+            {/* About */}
+            <motion.div custom={1} initial="hidden" animate="visible" variants={fadeUp}
+              style={{ backgroundColor: "#ffffff", borderRadius: "20px", padding: "28px", border: "1px solid #f0f0f0" }}
+            >
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "800", color: "#0d0b08", marginBottom: "14px" }}>About This Event</h2>
+              <p style={{ fontSize: "0.95rem", color: "#4b5563", lineHeight: 1.75 }}>{event.description}</p>
+            </motion.div>
+
+            {/* Highlights */}
+            <motion.div custom={2} initial="hidden" animate="visible" variants={fadeUp}
+              style={{ backgroundColor: "#ffffff", borderRadius: "20px", padding: "28px", border: "1px solid #f0f0f0" }}
+            >
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "800", color: "#0d0b08", marginBottom: "16px" }}>What to Expect</h2>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                {event.highlights.map((h: string, i: number) => (
+                  <motion.div key={h} custom={i} initial="hidden" animate="visible" variants={fadeUp}
+                    style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 14px", borderRadius: "12px", backgroundColor: "#f0f9f7" }}
+                  >
+                    <div style={{ height: "22px", width: "22px", borderRadius: "50%", backgroundColor: "#2e8673", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Check size={12} style={{ color: "#ffffff" }} />
+                    </div>
+                    <span style={{ fontSize: "0.85rem", fontWeight: "600", color: "#0d0b08" }}>{h}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </div>
 
-          <p className="text-muted-foreground leading-relaxed">{event.description}</p>
+          {/* Right column — Apply card */}
+          <motion.div custom={3} initial="hidden" animate="visible" variants={fadeUp}
+            style={{ position: "sticky", top: "24px", backgroundColor: "#ffffff", borderRadius: "20px", padding: "24px", border: "1px solid #f0f0f0", boxShadow: "0 8px 32px rgba(46,134,115,0.08)" }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "20px" }}>
+              <Users size={16} style={{ color: "#2e8673" }} />
+              <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                <strong style={{ color: "#0d0b08" }}>{event.spots}</strong> spots remaining
+              </span>
+            </div>
 
-          {/* Roles */}
-          <div>
-            <h3 className="font-semibold text-foreground mb-2">Available Roles</h3>
-            <div className="flex flex-wrap gap-2">
-              {event.roles.map((role) => (
-                <span key={role} className="text-sm bg-secondary text-secondary-foreground px-3 py-1 rounded-full">
+            <h3 style={{ fontSize: "1rem", fontWeight: "800", color: "#0d0b08", marginBottom: "14px" }}>Choose a Role</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "20px" }}>
+              {event.roles.map((role: string) => (
+                <motion.button key={role}
+                  whileHover={{ x: 3 }} whileTap={{ scale: 0.98 }}
+                  onClick={() => setSelectedRole(role)}
+                  style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "12px 14px", borderRadius: "12px", cursor: "pointer",
+                    border: selectedRole === role ? "1.5px solid #2e8673" : "1.5px solid #e5e7eb",
+                    backgroundColor: selectedRole === role ? "#f0f9f7" : "#ffffff",
+                    color: selectedRole === role ? "#2e8673" : "#4b5563",
+                    fontSize: "0.875rem", fontWeight: selectedRole === role ? "700" : "500",
+                    transition: "all 0.2s",
+                  }}
+                >
                   {role}
-                </span>
+                  <AnimatePresence>
+                    {selectedRole === role && (
+                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                        style={{ height: "20px", width: "20px", borderRadius: "50%", backgroundColor: "#2e8673", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Check size={11} style={{ color: "#ffffff" }} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
               ))}
             </div>
-          </div>
-        </div>
 
-        {/* Right: Info Card */}
-        <div className="bg-card border border-border rounded-2xl p-6 space-y-4 h-fit">
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Calendar className="h-4 w-4 text-primary" />
-            <span>{event.date}</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <MapPin className="h-4 w-4 text-primary" />
-            <span>{event.location}</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Users className="h-4 w-4 text-primary" />
-            <span>{event.spots} spots available</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4 text-primary" />
-            <span>{event.duration}</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Tag className="h-4 w-4 text-primary" />
-            <span>{event.category}</span>
-          </div>
+            <AnimatePresence mode="wait">
+              {applied ? (
+                <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+                  style={{ textAlign: "center", padding: "20px 0" }}
+                >
+                  <div style={{ height: "48px", width: "48px", borderRadius: "50%", backgroundColor: "#dcfce7", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
+                    <Check size={22} style={{ color: "#15803d" }} />
+                  </div>
+                  <p style={{ fontWeight: "800", color: "#0d0b08", fontSize: "0.95rem" }}>Application Sent!</p>
+                  <p style={{ fontSize: "0.8rem", color: "#6b7280", marginTop: "4px" }}>We'll notify you once reviewed.</p>
+                </motion.div>
+              ) : (
+                <motion.div key="apply" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  {event.status === "Closed" ? (
+                    <div style={{ textAlign: "center", padding: "14px", borderRadius: "14px", backgroundColor: "#f3f4f6" }}>
+                      <p style={{ fontSize: "0.875rem", fontWeight: "600", color: "#6b7280" }}>Applications Closed</p>
+                    </div>
+                  ) : (
+                    <motion.button
+                      whileHover={selectedRole ? { scale: 1.02, boxShadow: "0 8px 24px rgba(46,134,115,0.25)" } : {}}
+                      whileTap={selectedRole ? { scale: 0.97 } : {}}
+                      onClick={handleApply}
+                      style={{
+                        width: "100%", padding: "14px", borderRadius: "14px", border: "none",
+                        background: selectedRole ? "linear-gradient(135deg, #2e8673, #469d8b)" : "#f3f4f6",
+                        color: selectedRole ? "#ffffff" : "#9ca3af",
+                        fontSize: "0.95rem", fontWeight: "700", cursor: selectedRole ? "pointer" : "not-allowed",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      Apply Now <ArrowRight size={15} />
+                    </motion.button>
+                  )}
+                  {!selectedRole && event.status !== "Closed" && (
+                    <p style={{ fontSize: "0.75rem", color: "#9ca3af", textAlign: "center", marginTop: "8px" }}>Select a role to continue</p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          <button
-            disabled={event.status === "Closed"}
-            className={`w-full mt-2 py-2 rounded-full text-sm font-medium transition-opacity ${
-              event.status === "Closed"
-                ? "bg-secondary text-muted-foreground cursor-not-allowed"
-                : "gradient-teal text-primary-foreground hover:opacity-90"
-            }`}
-          >
-            {event.status === "Closed" ? "Registration Closed" : "Register Now"}
-          </button>
+            {/* Share */}
+            <motion.button whileHover={{ backgroundColor: "#f0f9f7" }} whileTap={{ scale: 0.97 }}
+              style={{ width: "100%", marginTop: "12px", padding: "10px", borderRadius: "12px", border: "1px solid #e5e7eb", backgroundColor: "#ffffff", color: "#6b7280", fontSize: "0.8rem", fontWeight: "600", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", transition: "background-color 0.2s" }}>
+              <Share2 size={14} /> Share Event
+            </motion.button>
+          </motion.div>
         </div>
-      </motion.div>
+      </div>
     </div>
-  )
+  );
 }
