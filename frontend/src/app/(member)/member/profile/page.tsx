@@ -1,180 +1,165 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { User, Mail, Clock, Star, Award, CheckSquare, Calendar } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion";
+import { Upload, Check, User } from "lucide-react";
+import { useState } from "react";
+import AnimatedButton from "@/components/ui/AnimatedButton";
+import AnimatedInput from "@/components/ui/AnimatedInput";
+import PageWrapper from "@/components/ui/PageWrapper";
 
-const participationHistory = [
-  { event: "Bisawa3dina Environmental Initiative", date: "Feb 2023", role: "Coordinator", points: 150, status: "Completed" },
-  { event: "Iftar for International Students", date: "Ramadan 2024", role: "Host", points: 80, status: "Completed" },
-  { event: "MENA Reads — Reading Club", date: "Ongoing", role: "Facilitator", points: 100, status: "Completed" },
-  { event: "Tawjihi Celebration Day", date: "Summer 2024", role: "Volunteer", points: 0, status: "Missed" },
-]
+const allSkills = ["Leadership", "Communication", "Design", "Programming", "Marketing", "Event Planning", "Photography", "Writing"];
 
-const assignedTasks = [
-  { name: "Prepare event materials", event: "Bisawa3dina Initiative", due: "Feb 10, 2023", status: "Done" },
-  { name: "Review participant list", event: "Afaq Forum", due: "Mar 22, 2026", status: "Pending" },
-  { name: "Send invitations", event: "MENA Reads", due: "Feb 5, 2026", status: "Done" },
-]
+export default function MemberProfile() {
+  const [selectedSkills, setSelectedSkills] = useState<string[]>(["Leadership", "Communication", "Design"]);
+  const [dragOver, setDragOver] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
 
-const pointsBreakdown = [
-  { event: "Bisawa3dina Environmental Initiative", points: 150 },
-  { event: "Iftar for International Students", points: 80 },
-  { event: "MENA Reads — Reading Club", points: 100 },
-  { event: "Tawjihi Celebration Day", points: 0 },
-  { event: "Feed & Benefit Initiative", points: 120 },
-]
+  const toggleSkill = (skill: string) => {
+    setSelectedSkills((prev) =>
+      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+    );
+  };
 
-const stats = [
-  { label: "Total Points", value: "1,250", icon: Star },
-  { label: "Events Attended", value: "8", icon: Calendar },
-  { label: "Tasks Completed", value: "15", icon: CheckSquare },
-  { label: "Certificates", value: "5", icon: Award },
-]
-
-const statusColor: Record<string, string> = {
-  Completed: "bg-green-100 text-green-700",
-  Missed: "bg-red-100 text-red-600",
-  Done: "bg-green-100 text-green-700",
-  Pending: "bg-yellow-100 text-yellow-700",
-}
-
-const sidebarLinks = [
-  { href: "/member", label: "Dashboard" },
-  { href: "/member/my-events", label: "My Events" },
-  { href: "/member/my-tasks", label: "My Tasks" },
-  { href: "/member/certificates", label: "Certificates" },
-  { href: "/member/points", label: "Points & Rewards" },
-  { href: "/member/job-recommendations", label: "Job Recommendations" },
-  { href: "/member/profile", label: "Profile" },
-  { href: "/member/settings", label: "Settings" },
-]
-
-export default function MemberProfilePage() {
   return (
-    <div className="flex min-h-screen bg-background">
+    <PageWrapper>
+      <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "8px" }}>
 
-      {/* ── Sidebar ── */}
-      <aside className="fixed left-0 top-0 h-full w-64 border-r border-border bg-card p-6 flex flex-col gap-2">
-        <h2 className="text-lg font-bold text-foreground mb-4">Member Panel</h2>
-        {sidebarLinks.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="rounded-lg px-4 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-          >
-            {link.label}
-          </Link>
-        ))}
-      </aside>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <h1 style={{ fontSize: "1.875rem", fontWeight: "800", color: "#0d0b08" }}>Complete Your Profile</h1>
+          <p style={{ color: "#6b7280", marginTop: "4px", marginBottom: "32px" }}>Help us match you with the right opportunities.</p>
+        </motion.div>
 
-      {/* ── Main Content ── */}
-      <main className="ml-64 flex-1 p-8">
-
-        {/* Profile Header */}
-        <div className="rounded-xl border border-border bg-card p-6 mb-6">
-          <div className="flex items-center gap-5">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/20">
-              <User className="h-10 w-10 text-primary" />
-            </div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.5 }}
+          style={{ backgroundColor: "#ffffff", borderRadius: "20px", padding: "32px", border: "1px solid #f0f0f0", display: "flex", flexDirection: "column", gap: "28px" }}
+        >
+          {/* Avatar */}
+          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+            <motion.div whileHover={{ scale: 1.05 }} style={{ height: "80px", width: "80px", borderRadius: "50%", backgroundColor: "#f0f9f7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", fontWeight: "800", color: "#2e8673", flexShrink: 0, cursor: "pointer", border: "3px solid #e0f2ee" }}>
+              AK
+            </motion.div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Ahmed Al-Hassan</h1>
-              <p className="text-muted-foreground flex items-center gap-2 mt-1">
-                <Mail className="h-4 w-4" /> ahmed@example.com
-              </p>
-              <div className="flex items-center gap-3 mt-2">
-                <span className="rounded-full bg-primary/20 text-primary text-xs font-medium px-3 py-1">
-                  Member
-                </span>
-                <span className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3 w-3" /> Joined Jan 2025
-                </span>
-              </div>
+              <AnimatedButton variant="outline" style={{ padding: "8px 16px", fontSize: "0.875rem", borderRadius: "10px" }}>
+                Change Photo
+              </AnimatedButton>
+              <p style={{ fontSize: "0.75rem", color: "#9ca3af", marginTop: "6px" }}>JPG, PNG. Max 2MB.</p>
             </div>
           </div>
-        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {stats.map((s) => (
-            <div key={s.label} className="rounded-xl border border-border bg-card p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
-                  <s.icon className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{s.value}</p>
-                  <p className="text-xs text-muted-foreground">{s.label}</p>
-                </div>
-              </div>
+          {/* Name + Phone */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+            <AnimatedInput label="Full Name" defaultValue="Ahmad Khalil" placeholder="Your full name" />
+            <AnimatedInput label="Phone" placeholder="+970 5X XXX XXXX" />
+          </div>
+
+          {/* City + Country */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+            <AnimatedInput label="City" placeholder="e.g. Nablus" />
+            <AnimatedInput label="Country" placeholder="e.g. Palestine" />
+          </div>
+
+          {/* Education */}
+          <AnimatedInput label="Education" placeholder="e.g. BSc Computer Science, An-Najah University" />
+
+          {/* Bio */}
+          <div>
+            <label style={{ fontSize: "0.875rem", fontWeight: "600", color: "#374151", display: "block", marginBottom: "8px" }}>Bio</label>
+            <textarea placeholder="A short introduction about yourself..." rows={3}
+              style={{ width: "100%", padding: "12px 16px", border: "1px solid #d1d5db", borderRadius: "12px", fontSize: "0.875rem", outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", transition: "border-color 0.2s" }}
+              onFocus={(e) => { e.target.style.borderColor = "#2e8673"; e.target.style.boxShadow = "0 0 0 3px rgba(46,134,115,0.1)"; }}
+              onBlur={(e) => { e.target.style.borderColor = "#d1d5db"; e.target.style.boxShadow = "none"; }}
+            />
+          </div>
+
+          {/* Skills */}
+          <div>
+            <label style={{ fontSize: "0.875rem", fontWeight: "600", color: "#374151", display: "block", marginBottom: "12px" }}>Skills</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {allSkills.map((skill, i) => {
+                const selected = selectedSkills.includes(skill);
+                return (
+                  <motion.button key={skill}
+                    initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 + i * 0.04 }}
+                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                    onClick={() => toggleSkill(skill)}
+                    style={{
+                      padding: "6px 14px", borderRadius: "20px", fontSize: "0.8rem", fontWeight: "600", cursor: "pointer",
+                      border: selected ? "1.5px solid #2e8673" : "1.5px solid #e5e7eb",
+                      backgroundColor: selected ? "#f0f9f7" : "#ffffff",
+                      color: selected ? "#2e8673" : "#6b7280",
+                      display: "flex", alignItems: "center", gap: "6px", transition: "all 0.2s",
+                    }}
+                  >
+                    <AnimatePresence>
+                      {selected && (
+                        <motion.span initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
+                          <Check size={12} />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                    {skill}
+                  </motion.button>
+                );
+              })}
             </div>
-          ))}
-        </div>
-
-        {/* Participation History */}
-        <div className="rounded-xl border border-border bg-card p-6 mb-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Participation History</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-muted-foreground">
-                  <th className="pb-3 text-left font-medium">Event</th>
-                  <th className="pb-3 text-left font-medium">Date</th>
-                  <th className="pb-3 text-left font-medium">Role</th>
-                  <th className="pb-3 text-left font-medium">Points</th>
-                  <th className="pb-3 text-left font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {participationHistory.map((p, i) => (
-                  <tr key={i} className="border-b border-border/50">
-                    <td className="py-3 text-foreground">{p.event}</td>
-                    <td className="py-3 text-muted-foreground">{p.date}</td>
-                    <td className="py-3 text-muted-foreground">{p.role}</td>
-                    <td className="py-3 text-primary font-semibold">+{p.points}</td>
-                    <td className="py-3">
-                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColor[p.status]}`}>
-                        {p.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <p style={{ fontSize: "0.75rem", color: "#9ca3af", marginTop: "8px" }}>{selectedSkills.length} skill{selectedSkills.length !== 1 ? "s" : ""} selected</p>
           </div>
-        </div>
 
-        {/* Assigned Tasks */}
-        <div className="rounded-xl border border-border bg-card p-6 mb-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Assigned Tasks</h2>
-          <div className="space-y-3">
-            {assignedTasks.map((task, i) => (
-              <div key={i} className="flex items-center justify-between rounded-lg border border-border/50 p-4">
-                <div>
-                  <p className="font-medium text-foreground">{task.name}</p>
-                  <p className="text-sm text-muted-foreground">{task.event} · Due: {task.due}</p>
-                </div>
-                <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColor[task.status]}`}>
-                  {task.status}
-                </span>
-              </div>
-            ))}
+          {/* Experience */}
+          <div>
+            <label style={{ fontSize: "0.875rem", fontWeight: "600", color: "#374151", display: "block", marginBottom: "8px" }}>Experience</label>
+            <textarea placeholder="Brief summary of your relevant experience..." rows={3}
+              style={{ width: "100%", padding: "12px 16px", border: "1px solid #d1d5db", borderRadius: "12px", fontSize: "0.875rem", outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit" }}
+              onFocus={(e) => { e.target.style.borderColor = "#2e8673"; e.target.style.boxShadow = "0 0 0 3px rgba(46,134,115,0.1)"; }}
+              onBlur={(e) => { e.target.style.borderColor = "#d1d5db"; e.target.style.boxShadow = "none"; }}
+            />
           </div>
-        </div>
 
-        {/* Points Breakdown */}
-        <div className="rounded-xl border border-border bg-card p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Earned Points Breakdown</h2>
-          <div className="space-y-2">
-            {pointsBreakdown.map((p, i) => (
-              <div key={i} className="flex items-center justify-between rounded-lg border border-border/50 p-3">
-                <span className="text-foreground">{p.event}</span>
-                <span className="font-semibold text-primary">+{p.points}</span>
-              </div>
-            ))}
+          {/* CV Upload */}
+          <div>
+            <label style={{ fontSize: "0.875rem", fontWeight: "600", color: "#374151", display: "block", marginBottom: "8px" }}>Upload CV</label>
+            <motion.div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) setUploadedFile(f.name); }}
+              onClick={() => { const input = document.createElement("input"); input.type = "file"; input.accept = ".pdf,.doc,.docx"; input.onchange = (e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) setUploadedFile(f.name); }; input.click(); }}
+              animate={{ borderColor: dragOver ? "#2e8673" : "#d1d5db", backgroundColor: dragOver ? "#f0f9f7" : "#fafafa" }}
+              whileHover={{ backgroundColor: "#f5faf9", borderColor: "#66bdab" }}
+              style={{ border: "2px dashed #d1d5db", borderRadius: "14px", padding: "32px", textAlign: "center", cursor: "pointer", transition: "all 0.2s" }}
+            >
+              <AnimatePresence mode="wait">
+                {uploadedFile ? (
+                  <motion.div key="uploaded" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
+                    <div style={{ height: "40px", width: "40px", borderRadius: "50%", backgroundColor: "#dcfce7", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
+                      <Check size={20} style={{ color: "#15803d" }} />
+                    </div>
+                    <p style={{ fontSize: "0.875rem", fontWeight: "600", color: "#15803d" }}>{uploadedFile}</p>
+                    <p style={{ fontSize: "0.75rem", color: "#9ca3af", marginTop: "4px" }}>Click to replace</p>
+                  </motion.div>
+                ) : (
+                  <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                    <Upload size={32} style={{ color: "#9ca3af", margin: "0 auto 8px" }} />
+                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                      Drag & drop your CV here, or{" "}
+                      <span style={{ color: "#2e8673", fontWeight: "600" }}>browse</span>
+                    </p>
+                    <p style={{ fontSize: "0.75rem", color: "#9ca3af", marginTop: "4px" }}>PDF, DOC. Max 5MB.</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           </div>
-        </div>
 
-      </main>
-    </div>
-  )
+          {/* Actions */}
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", paddingTop: "8px", borderTop: "1px solid #f0f0f0" }}>
+            <AnimatedButton variant="outline" style={{ padding: "11px 24px", fontSize: "0.95rem", borderRadius: "12px" }}>
+              Skip for now
+            </AnimatedButton>
+            <AnimatedButton variant="primary" style={{ padding: "11px 28px", fontSize: "0.95rem", borderRadius: "12px" }}>
+              Save Profile
+            </AnimatedButton>
+          </div>
+        </motion.div>
+      </div>
+    </PageWrapper>
+  );
 }

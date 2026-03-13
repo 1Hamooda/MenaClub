@@ -1,145 +1,140 @@
-"use client"
+"use client";
 
-import { User, Mail, Clock, Award, CheckSquare, Calendar, BarChart, Download } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, Award, Calendar, Clock } from "lucide-react";
+import { useState } from "react";
+import AnimatedButton from "@/components/ui/AnimatedButton";
+import AnimatedInput from "@/components/ui/AnimatedInput";
+import PageWrapper from "@/components/ui/PageWrapper";
+
+const allSkills = ["Leadership", "Communication", "Design", "Programming", "Marketing", "Event Planning", "Photography", "Writing"];
 
 const stats = [
-  { label: "Events Attended", value: "12", icon: Calendar },
-  { label: "Tasks Completed", value: "28", icon: CheckSquare },
-  { label: "Certificates", value: "7", icon: Award },
-  { label: "Attendance Rate", value: "92%", icon: BarChart },
-]
+  { icon: Calendar, label: "Events Attended", value: 8 },
+  { icon: Clock, label: "Volunteer Hours", value: "64h" },
+  { icon: Award, label: "Certificates", value: 3 },
+];
 
-const events = [
-  { name: "Bisawa3dina Environmental Initiative", date: "Feb 2023", role: "Coordinator", status: "Attended" },
-  { name: "Iftar for International Students", date: "Ramadan 2024", role: "Host", status: "Attended" },
-  { name: "Afaq Forum — Youth Clubs Meetup", date: "2025", role: "Usher", status: "Upcoming" },
-  { name: "Tawjihi Celebration Day", date: "Summer 2024", role: "Volunteer", status: "Missed" },
-]
+export default function VolunteerProfile() {
+  const [selectedSkills, setSelectedSkills] = useState<string[]>(["Communication", "Event Planning"]);
 
-const tasks = [
-  { name: "Set up registration desk", event: "Afaq Forum", status: "Pending" },
-  { name: "Guide attendees to halls", event: "Afaq Forum", status: "Pending" },
-  { name: "Collect feedback forms", event: "MENA Reads", status: "Done" },
-]
+  const toggleSkill = (skill: string) => {
+    setSelectedSkills((prev) =>
+      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+    );
+  };
 
-const certificates = [
-  { event: "Bisawa3dina Environmental Initiative", date: "Feb 2023" },
-  { event: "Iftar for International Students", date: "Ramadan 2024" },
-  { event: "MENA Reads — Reading Club", date: "Ongoing" },
-  { event: "Feed & Benefit Initiative", date: "2024" },
-]
-
-const statusColor: Record<string, string> = {
-  Upcoming: "bg-blue-100 text-blue-700",
-  Attended: "bg-green-100 text-green-700",
-  Missed: "bg-red-100 text-red-600",
-  Done: "bg-green-100 text-green-700",
-  Pending: "bg-yellow-100 text-yellow-700",
-}
-
-export default function VolunteerProfilePage() {
   return (
-    <div className="flex flex-col gap-6">
+    <PageWrapper>
+      <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "8px" }}>
 
-      {/* Profile Header */}
-      <div className="rounded-xl border border-border bg-card p-6">
-        <div className="flex items-center gap-5">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/20">
-            <User className="h-10 w-10 text-primary" />
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <h1 style={{ fontSize: "1.875rem", fontWeight: "800", color: "#0d0b08" }}>My Profile</h1>
+          <p style={{ color: "#6b7280", marginTop: "4px", marginBottom: "24px" }}>Manage your personal details.</p>
+        </motion.div>
+
+        {/* Activity Stats */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08, duration: 0.5 }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "8px" }}
+        >
+          {stats.map((s, i) => (
+            <motion.div key={s.label} whileHover={{ y: -3, boxShadow: "0 8px 24px rgba(46,134,115,0.1)" }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              style={{ backgroundColor: "#ffffff", borderRadius: "14px", padding: "18px", border: "1px solid #f0f0f0", textAlign: "center" }}
+            >
+              <div style={{ height: "36px", width: "36px", borderRadius: "10px", backgroundColor: "#f0f9f7", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
+                <s.icon size={18} style={{ color: "#2e8673" }} />
+              </div>
+              <p style={{ fontSize: "1.25rem", fontWeight: "800", color: "#0d0b08" }}>{s.value}</p>
+              <p style={{ fontSize: "0.72rem", color: "#6b7280", marginTop: "2px" }}>{s.label}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Form Card */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.5 }}
+          style={{ backgroundColor: "#ffffff", borderRadius: "20px", padding: "32px", border: "1px solid #f0f0f0", display: "flex", flexDirection: "column", gap: "28px" }}
+        >
+          {/* Avatar */}
+          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+            <motion.div whileHover={{ scale: 1.05 }} style={{ height: "80px", width: "80px", borderRadius: "50%", backgroundColor: "#f0f9f7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", fontWeight: "800", color: "#2e8673", flexShrink: 0, cursor: "pointer", border: "3px solid #e0f2ee" }}>
+              LM
+            </motion.div>
+            <div>
+              <AnimatedButton variant="outline" style={{ padding: "8px 16px", fontSize: "0.875rem", borderRadius: "10px" }}>
+                Change Photo
+              </AnimatedButton>
+              <p style={{ fontSize: "0.75rem", color: "#9ca3af", marginTop: "6px" }}>JPG, PNG. Max 2MB.</p>
+            </div>
           </div>
+
+          {/* Name + Phone */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+            <AnimatedInput label="Full Name" defaultValue="Layla Mohammed" placeholder="Your full name" />
+            <AnimatedInput label="Phone" placeholder="+970 5X XXX XXXX" />
+          </div>
+
+          {/* City + Country */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+            <AnimatedInput label="City" placeholder="e.g. Ramallah" />
+            <AnimatedInput label="Country" placeholder="e.g. Palestine" />
+          </div>
+
+          {/* Bio */}
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Sara Mohammed</h1>
-            <p className="text-muted-foreground flex items-center gap-2 mt-1">
-              <Mail className="h-4 w-4" /> sara@example.com
-            </p>
-            <div className="flex items-center gap-3 mt-2">
-              <span className="rounded-full bg-primary/20 text-primary text-xs font-medium px-3 py-1">
-                Volunteer
-              </span>
-              <span className="text-sm text-muted-foreground flex items-center gap-1">
-                <Clock className="h-3 w-3" /> Joined Mar 2025
-              </span>
-            </div>
+            <label style={{ fontSize: "0.875rem", fontWeight: "600", color: "#374151", display: "block", marginBottom: "8px" }}>Bio</label>
+            <textarea placeholder="A short introduction about yourself..." rows={3}
+              style={{ width: "100%", padding: "12px 16px", border: "1px solid #d1d5db", borderRadius: "12px", fontSize: "0.875rem", outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit" }}
+              onFocus={(e) => { e.target.style.borderColor = "#2e8673"; e.target.style.boxShadow = "0 0 0 3px rgba(46,134,115,0.1)"; }}
+              onBlur={(e) => { e.target.style.borderColor = "#d1d5db"; e.target.style.boxShadow = "none"; }}
+            />
           </div>
-        </div>
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((s) => (
-          <div key={s.label} className="rounded-xl border border-border bg-card p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
-                <s.icon className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{s.value}</p>
-                <p className="text-xs text-muted-foreground">{s.label}</p>
-              </div>
+          {/* Skills */}
+          <div>
+            <label style={{ fontSize: "0.875rem", fontWeight: "600", color: "#374151", display: "block", marginBottom: "12px" }}>Skills</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {allSkills.map((skill, i) => {
+                const selected = selectedSkills.includes(skill);
+                return (
+                  <motion.button key={skill}
+                    initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.25 + i * 0.04 }}
+                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                    onClick={() => toggleSkill(skill)}
+                    style={{
+                      padding: "6px 14px", borderRadius: "20px", fontSize: "0.8rem", fontWeight: "600", cursor: "pointer",
+                      border: selected ? "1.5px solid #2e8673" : "1.5px solid #e5e7eb",
+                      backgroundColor: selected ? "#f0f9f7" : "#ffffff",
+                      color: selected ? "#2e8673" : "#6b7280",
+                      display: "flex", alignItems: "center", gap: "6px", transition: "all 0.2s",
+                    }}
+                  >
+                    <AnimatePresence>
+                      {selected && (
+                        <motion.span initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
+                          <Check size={12} />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                    {skill}
+                  </motion.button>
+                );
+              })}
             </div>
+            <p style={{ fontSize: "0.75rem", color: "#9ca3af", marginTop: "8px" }}>{selectedSkills.length} skill{selectedSkills.length !== 1 ? "s" : ""} selected</p>
           </div>
-        ))}
-      </div>
 
-      {/* My Events */}
-      <div className="rounded-xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-foreground mb-4">My Events</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {events.map((e, i) => (
-            <div key={i} className="rounded-lg border border-border/50 p-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-medium text-foreground">{e.name}</p>
-                  <p className="text-sm text-muted-foreground">{e.date} · {e.role}</p>
-                </div>
-                <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColor[e.status]}`}>
-                  {e.status}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+          {/* Actions */}
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", paddingTop: "8px", borderTop: "1px solid #f0f0f0" }}>
+            <AnimatedButton variant="outline" style={{ padding: "11px 24px", fontSize: "0.95rem", borderRadius: "12px" }}>
+              Cancel
+            </AnimatedButton>
+            <AnimatedButton variant="primary" style={{ padding: "11px 28px", fontSize: "0.95rem", borderRadius: "12px" }}>
+              Save Profile
+            </AnimatedButton>
+          </div>
+        </motion.div>
       </div>
-
-      {/* Assigned Tasks */}
-      <div className="rounded-xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Assigned Tasks</h2>
-        <div className="space-y-3">
-          {tasks.map((task, i) => (
-            <div key={i} className="flex items-center justify-between rounded-lg border border-border/50 p-4">
-              <div>
-                <p className="font-medium text-foreground">{task.name}</p>
-                <p className="text-sm text-muted-foreground">{task.event}</p>
-              </div>
-              <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColor[task.status]}`}>
-                {task.status}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Certificates */}
-      <div className="rounded-xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Certificates</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {certificates.map((c, i) => (
-            <div key={i} className="flex items-center justify-between rounded-lg border border-border/50 p-4">
-              <div className="flex items-center gap-3">
-                <Award className="h-8 w-8 text-primary" />
-                <div>
-                  <p className="font-medium text-foreground">{c.event}</p>
-                  <p className="text-sm text-muted-foreground">{c.date}</p>
-                </div>
-              </div>
-              <button className="flex items-center gap-1 border border-border text-muted-foreground hover:border-primary hover:text-primary px-3 py-1.5 rounded-lg text-xs transition-colors">
-                <Download className="h-3 w-3" /> PDF
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-    </div>
-  )
+    </PageWrapper>
+  );
 }
