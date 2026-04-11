@@ -1,2 +1,5 @@
 from django.urls import path
-urlpatterns = []
+from . import views
+urlpatterns = [
+    path('submit/', views.VisitorFormCreateView.as_view()),
+]

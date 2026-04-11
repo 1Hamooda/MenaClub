@@ -1,2 +1,3 @@
 from django.urls import path
-urlpatterns = []
+from . import views
+urlpatterns = [ path('', views.AnnouncementListView.as_view()),]
