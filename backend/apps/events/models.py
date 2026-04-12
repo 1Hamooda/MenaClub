@@ -1,15 +1,23 @@
 from django.db import models
 
 class Event(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+        ('archived', 'Archived'),
+    ]
+
     title = models.CharField(max_length=255)
     description = models.TextField()
     location = models.CharField(max_length=255)
     date = models.DateTimeField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
-    
+
 class EventRegistration(models.Model):
     ROLE_CHOICES = [
         ('attendee', 'Attendee'),

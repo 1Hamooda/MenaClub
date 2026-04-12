@@ -10,6 +10,13 @@ class EventDetailView(generics.RetrieveAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
 
+class EventCreateView(generics.CreateAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+
+class EventUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
 
 class EventRegistrationCreateView(generics.CreateAPIView):
     queryset = EventRegistration.objects.all()
@@ -21,3 +28,7 @@ class EventRegistrationListView(generics.ListAPIView):
     def get_queryset(self):
         event_id = self.kwargs['event_id']
         return EventRegistration.objects.filter(event_id=event_id)
+
+class EventRegistrationUpdateView(generics.UpdateAPIView):
+    queryset = EventRegistration.objects.all()
+    serializer_class = EventRegistrationSerializer
