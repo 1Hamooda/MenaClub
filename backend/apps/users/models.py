@@ -11,7 +11,6 @@ class User(AbstractUser):
         ('admin', 'Admin'),
     ], default='member')
     points = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-
+created_at = models.DateTimeField(auto_now_add=True, null=True)
     class Meta:
         db_table = 'users'
