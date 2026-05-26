@@ -9,9 +9,20 @@ from .serializers import AttendanceCodeSerializer, CheckInSerializer
 from .services    import create_attendance_code, checkin_with_code
 
 
-# ──────────────────────────────────────────────────────────────────
-# VOLUNTEER — check in with code
-# ──────────────────────────────────────────────────────────────────
+def _award_attendance_points(user, event):
+    """Award check-in points based on role. Safe — never raises."""
+    try:
+        from apps.points.services import award_points
+        pts    = 150 if user.role == "volunteer" else 100
+        reason = "volunteer_checkin" if user.role == "volunteer" else "event_attendance"
+        award_points(user=user, points=pts, reason=reason,
+                     note=f"Checked in to: {event.title}", event=event)
+        return pts
+    except Exception:
+        return 0
+
+
+# ── User endpoints ─────────────────────────────────────────────────
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -19,7 +30,7 @@ def checkin(request):
     """
     POST /api/attendance/checkin/
     Body: { code }
-    Volunteer submits a code → get marked as attended. FR-VOL5.
+    Auto-awards: +150 volunteers, +100 members.
     """
     raw_code = request.data.get("code", "").strip()
     if not raw_code:
@@ -29,38 +40,32 @@ def checkin(request):
     if error:
         return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
 
+    pts = _award_attendance_points(request.user, checkin_obj.event)
+
     return Response({
-        "message":    f"Successfully checked in to \"{checkin_obj.event.title}\"! 🎉",
-        "event":      checkin_obj.event.title,
+        "message":       f"Successfully checked in to \"{checkin_obj.event.title}\"! 🎉",
+        "event":         checkin_obj.event.title,
         "checked_in_at": checkin_obj.checked_in_at,
+        "points_earned": pts,
     }, status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def my_checkins(request):
-    """
-    GET /api/attendance/my-checkins/
-    Returns all events the logged-in user has checked in to. FR-VOL4.
-    """
+    """GET /api/attendance/my-checkins/"""
     checkins = CheckIn.objects.filter(user=request.user).select_related("event")
     return Response(CheckInSerializer(checkins, many=True).data)
 
 
-# ──────────────────────────────────────────────────────────────────
-# ADMIN — manage codes and view attendance
-# ──────────────────────────────────────────────────────────────────
+# ── Admin endpoints ────────────────────────────────────────────────
 
 @api_view(["POST"])
 @permission_classes([IsAdmin])
 def admin_generate_code(request):
-    """
-    POST /api/attendance/admin/generate-code/
-    Body: { event_id, expires_at (optional) }
-    Generates (or regenerates) an attendance code for an event. FR-A7.
-    """
+    """POST /api/attendance/admin/generate-code/"""
     event_id   = request.data.get("event_id")
-    expires_at = request.data.get("expires_at")  # ISO string or null
+    expires_at = request.data.get("expires_at")
 
     if not event_id:
         return Response({"error": "event_id is required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -72,16 +77,11 @@ def admin_generate_code(request):
         return Response({"error": "Event not found."}, status=status.HTTP_404_NOT_FOUND)
 
     from django.utils.dateparse import parse_datetime
-    parsed_expires = None
-    if expires_at:
-        parsed_expires = parse_datetime(expires_at)
+    parsed_expires = parse_datetime(expires_at) if expires_at else None
 
     code_obj = create_attendance_code(
-        event      = event,
-        created_by = request.user,
-        expires_at = parsed_expires,
+        event=event, created_by=request.user, expires_at=parsed_expires,
     )
-
     return Response({
         "message": f"Attendance code generated for \"{event.title}\".",
         "code":    AttendanceCodeSerializer(code_obj).data,
@@ -91,10 +91,7 @@ def admin_generate_code(request):
 @api_view(["GET"])
 @permission_classes([IsAdmin])
 def admin_list_codes(request):
-    """
-    GET /api/attendance/admin/codes/
-    Lists all attendance codes.
-    """
+    """GET /api/attendance/admin/codes/"""
     qs = AttendanceCode.objects.select_related("event", "created_by").order_by("-created_at")
     return Response(AttendanceCodeSerializer(qs, many=True).data)
 
@@ -102,10 +99,7 @@ def admin_list_codes(request):
 @api_view(["POST"])
 @permission_classes([IsAdmin])
 def admin_deactivate_code(request, code_id):
-    """
-    POST /api/attendance/admin/codes/<id>/deactivate/
-    Deactivates an attendance code so it can no longer be used.
-    """
+    """POST /api/attendance/admin/codes/<id>/deactivate/"""
     try:
         code_obj = AttendanceCode.objects.get(id=code_id)
     except AttendanceCode.DoesNotExist:
@@ -119,21 +113,12 @@ def admin_deactivate_code(request, code_id):
 @api_view(["GET"])
 @permission_classes([IsAdmin])
 def admin_list_checkins(request):
-    """
-    GET /api/attendance/admin/checkins/
-    Lists all check-ins.
-    Query params: ?event_id=<id>
-    """
+    """GET /api/attendance/admin/checkins/ — ?event_id=<id>"""
     qs = CheckIn.objects.select_related("event", "user").order_by("-checked_in_at")
-
     event_id = request.query_params.get("event_id")
     if event_id:
         qs = qs.filter(event_id=event_id)
-
-    return Response({
-        "count":   qs.count(),
-        "results": CheckInSerializer(qs, many=True).data,
-    })
+    return Response({"count": qs.count(), "results": CheckInSerializer(qs, many=True).data})
 
 
 @api_view(["POST"])
@@ -141,12 +126,10 @@ def admin_list_checkins(request):
 def admin_manual_checkin(request):
     """
     POST /api/attendance/admin/manual-checkin/
-    Body: { user_id, event_id }
-    Admin manually marks a volunteer as checked in.
+    Body: { user_id, event_id } — also auto-awards points.
     """
     user_id  = request.data.get("user_id")
     event_id = request.data.get("event_id")
-
     if not user_id or not event_id:
         return Response({"error": "user_id and event_id are required."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -164,6 +147,8 @@ def admin_manual_checkin(request):
         return Response({"error": f"{user.full_name} is already checked in."}, status=status.HTTP_400_BAD_REQUEST)
 
     checkin_obj = CheckIn.objects.create(event=event, user=user)
+    _award_attendance_points(user, event)
+
     return Response({
         "message": f"{user.full_name} manually checked in to \"{event.title}\".",
         "checkin": CheckInSerializer(checkin_obj).data,

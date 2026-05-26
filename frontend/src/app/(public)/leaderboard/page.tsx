@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Crown, Medal, Star, Zap, Target, TrendingUp, Calendar, Award, ChevronRight, Flame } from "lucide-react";
+import { Trophy, Crown, Medal, Star, Zap, Target, TrendingUp, Calendar, Award, ChevronRight, UserPlus, Share2 } from "lucide-react";
 import Link from "next/link";
 import AnimatedButton from "@/components/ui/AnimatedButton";
 import api from "@/services/api";
@@ -89,9 +89,7 @@ export default function LeaderboardPage() {
   const levelCfg = myRank ? (LEVEL_COLORS[myRank.level] ?? LEVEL_COLORS.Bronze) : LEVEL_COLORS.Bronze;
 
   return (
-    /* Outer page — light grey background, symmetric vertical padding */
     <div style={{ backgroundColor: "#f9fafb", minHeight: "100vh", padding: "48px 0" }}>
-      {/* Centered container */}
       <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 32px", display: "flex", flexDirection: "column", gap: "32px" }}>
 
         {/* Header */}
@@ -105,8 +103,8 @@ export default function LeaderboardPage() {
             Leaderboard
           </h1>
           <p style={{ color: "#6b7280", fontSize: "0.95rem", maxWidth: "500px", margin: "0 auto", lineHeight: "1.7" }}>
-            Earn points by attending events, completing tasks, and contributing to the community.
-            Climb the ranks and unlock exclusive rewards!
+            Earn points by attending events, checking in as a volunteer, and sharing events with friends.
+            Climb the ranks and unlock new tiers!
           </p>
         </motion.div>
 
@@ -150,7 +148,7 @@ export default function LeaderboardPage() {
               </div>
             )}
 
-            {/* Two-column layout — rankings + sidebar */}
+            {/* Two-column layout */}
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "24px", alignItems: "start" }}>
 
               {/* Rankings list */}
@@ -162,7 +160,7 @@ export default function LeaderboardPage() {
                     <h2 style={{ fontSize: "1rem", fontWeight: "700", color: "#0d0b08" }}>All Rankings</h2>
                   </div>
                   <span style={{ fontSize: "0.75rem", fontWeight: "600", color: "#6b7280", backgroundColor: "#f3f4f6", padding: "3px 10px", borderRadius: "20px" }}>
-                    This Month
+                    All Time
                   </span>
                 </div>
 
@@ -259,8 +257,8 @@ export default function LeaderboardPage() {
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                       {[
-                        { label: "Events",  value: String(myRank.events_attended) },
-                        { label: "Points",  value: myRank.total_points.toLocaleString() },
+                        { label: "Events", value: String(myRank.events_attended) },
+                        { label: "Points", value: myRank.total_points.toLocaleString() },
                       ].map((s) => (
                         <div key={s.label} style={{ backgroundColor: "#f9fafb", borderRadius: "12px", padding: "14px", textAlign: "center" }}>
                           <p style={{ fontSize: "1.2rem", fontWeight: "800", color: "#0d0b08" }}>{s.value}</p>
@@ -271,7 +269,7 @@ export default function LeaderboardPage() {
                   </motion.div>
                 )}
 
-                {/* How to Earn Points */}
+                {/* How to Earn Points — matches the actual point system */}
                 <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.25 }}
                   style={{ backgroundColor: "#ffffff", borderRadius: "20px", padding: "24px", border: "1px solid #f0f0f0" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
@@ -280,10 +278,10 @@ export default function LeaderboardPage() {
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     {[
-                      { icon: Calendar,   label: "Attend an event",      points: "+100 pts" },
-                      { icon: Star,       label: "Complete a task",       points: "+50 pts" },
-                      { icon: Award,      label: "Volunteer at an event", points: "+150 pts" },
-                      { icon: TrendingUp, label: "Refer a new member",    points: "+75 pts" },
+                      { icon: UserPlus, label: "Create an account",             points: "+50 pts" },
+                      { icon: Calendar, label: "Attend an event (member)",      points: "+100 pts" },
+                      { icon: Award,    label: "Check in as volunteer",         points: "+150 pts" },
+                      { icon: Share2,   label: "Share event (someone joins)",   points: "+75 pts" },
                     ].map((item, i) => (
                       <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: "10px", border: "1px solid #f0f0f0" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -300,8 +298,37 @@ export default function LeaderboardPage() {
                   </div>
                 </motion.div>
 
+                {/* Level Thresholds */}
+                <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.28 }}
+                  style={{ backgroundColor: "#ffffff", borderRadius: "20px", padding: "24px", border: "1px solid #f0f0f0" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                    <Trophy size={16} style={{ color: "#2e8673" }} />
+                    <h3 style={{ fontSize: "0.95rem", fontWeight: "700", color: "#0d0b08" }}>Level Tiers</h3>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {[
+                      { level: "Diamond",  pts: "3000+" },
+                      { level: "Platinum", pts: "2000+" },
+                      { level: "Gold",     pts: "1000+" },
+                      { level: "Silver",   pts: "500+"  },
+                      { level: "Bronze",   pts: "0+"    },
+                    ].map((tier) => {
+                      const lc = LEVEL_COLORS[tier.level];
+                      const isMine = myRank?.level === tier.level;
+                      return (
+                        <div key={tier.level} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderRadius: "10px", backgroundColor: isMine ? "#f0fdf4" : "transparent", border: isMine ? "1px solid #d1fae5" : "1px solid transparent" }}>
+                          <span style={{ fontSize: "0.78rem", fontWeight: "700", padding: "3px 10px", borderRadius: "20px", backgroundColor: lc.bg, color: lc.color, border: `1px solid ${lc.border}` }}>
+                            {tier.level}
+                          </span>
+                          <span style={{ fontSize: "0.78rem", fontWeight: "600", color: "#6b7280" }}>{tier.pts} pts</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+
                 {/* CTA Banner */}
-                <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
+                <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.32 }}
                   style={{ background: "linear-gradient(135deg, #2e8673 0%, #211f21 100%)", borderRadius: "20px", padding: "24px" }}>
                   <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
                     <Star size={18} style={{ color: "#fbbf24", flexShrink: 0, marginTop: "2px" }} />
@@ -311,8 +338,8 @@ export default function LeaderboardPage() {
                       </p>
                       <p style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.8)", lineHeight: "1.6", marginBottom: "16px" }}>
                         {myRank
-                          ? `You are only ${myRank.points_to_next} points away from the next level. Attend one more event to level up!`
-                          : "Attend events and contribute to the community to earn points and climb the leaderboard."}
+                          ? `You are only ${myRank.points_to_next} points away from the next level. Attend an event or share with friends to level up!`
+                          : "Attend events, volunteer, and share events with friends to earn points and climb the leaderboard."}
                       </p>
                       <Link href="/events">
                         <AnimatedButton variant="outline"

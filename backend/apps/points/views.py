@@ -5,7 +5,7 @@ from rest_framework.response    import Response
 
 from apps.users.models          import User
 from apps.users.permissions     import IsAdmin
-from .models                    import PointTransaction
+from .models                    import PointTransaction, EventShare
 from .serializers               import PointTransactionSerializer, AwardPointsSerializer
 from .services                  import get_points_summary, award_points
 
@@ -35,7 +35,6 @@ def get_next_milestone(points: int) -> int:
 
 def build_leaderboard(limit: int = 50):
     from django.db.models import Sum, Count
-
     users = (
         User.objects
         .filter(is_active=True)
@@ -46,7 +45,6 @@ def build_leaderboard(limit: int = 50):
         )
         .order_by("-total_points")[:limit]
     )
-
     results = []
     for i, u in enumerate(users):
         pts = u.total_points or 0
@@ -62,7 +60,7 @@ def build_leaderboard(limit: int = 50):
     return results
 
 
-# ── Member / Volunteer endpoints ───────────────────────────────────
+# ── User endpoints ─────────────────────────────────────────────────
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -81,11 +79,7 @@ def my_points(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def leaderboard(request):
-    """
-    GET /api/points/leaderboard/
-    Accessible to any authenticated user.
-    Returns top users ranked by total points with level + events_attended.
-    """
+    """GET /api/points/leaderboard/"""
     limit   = min(int(request.query_params.get("limit", 50)), 100)
     results = build_leaderboard(limit=limit)
     return Response({"leaderboard": results})
@@ -94,16 +88,11 @@ def leaderboard(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def my_rank(request):
-    """
-    GET /api/points/my-rank/
-    Returns the logged-in user's rank, level, points, and progress to next milestone.
-    """
+    """GET /api/points/my-rank/"""
     full       = build_leaderboard(limit=1000)
     user_entry = next((e for e in full if e["user_id"] == request.user.id), None)
-
     pts  = user_entry["total_points"] if user_entry else 0
     rank = user_entry["rank"]         if user_entry else len(full) + 1
-
     return Response({
         "rank":            rank,
         "total_points":    pts,
@@ -115,12 +104,95 @@ def my_rank(request):
     })
 
 
+# ── Share token endpoints ──────────────────────────────────────────
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def generate_share_token(request):
+    """
+    POST /api/points/share/generate/
+    Body: { event_id }
+    Returns (or creates) a unique share token for the current user + event.
+    The frontend uses this token to build a shareable URL.
+    """
+    import secrets
+    from apps.events.models import Event
+
+    event_id = request.data.get("event_id")
+    if not event_id:
+        return Response({"error": "event_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        event = Event.objects.get(id=event_id)
+    except Event.DoesNotExist:
+        return Response({"error": "Event not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    share, created = EventShare.objects.get_or_create(
+        event     = event,
+        shared_by = request.user,
+        defaults  = {"token": secrets.token_hex(16)},
+    )
+
+    return Response({
+        "token":    share.token,
+        "rewarded": share.rewarded,
+        "share_url": f"/events/{event.id}?ref={share.token}",
+    })
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def redeem_share_token(request):
+    """
+    POST /api/points/share/redeem/
+    Body: { token }
+    Called when a new user registers or applies to an event via a share link.
+    Awards +75 pts to the sharer (once per link).
+    Cannot redeem your own token.
+    """
+    from django.utils import timezone
+
+    token = request.data.get("token", "").strip()
+    if not token:
+        return Response({"error": "Token is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        share = EventShare.objects.select_related("shared_by", "event").get(token=token)
+    except EventShare.DoesNotExist:
+        return Response({"error": "Invalid share token."}, status=status.HTTP_404_NOT_FOUND)
+
+    # Can't redeem your own share
+    if share.shared_by == request.user:
+        return Response({"error": "You cannot redeem your own share link."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Already rewarded
+    if share.rewarded:
+        return Response({"message": "This share link has already been rewarded.", "already_rewarded": True})
+
+    # Award points to sharer
+    award_points(
+        user   = share.shared_by,
+        points = 75,
+        reason = "event_share",
+        note   = f"Someone joined via your share link for: {share.event.title}",
+        event  = share.event,
+    )
+    share.rewarded    = True
+    share.rewarded_at = timezone.now()
+    share.save()
+
+    return Response({
+        "message": f"Share rewarded! {share.shared_by.full_name} earned 75 points.",
+        "event":   share.event.title,
+    })
+
+
 # ── Admin endpoints ────────────────────────────────────────────────
 
 @api_view(["GET"])
 @permission_classes([IsAdmin])
 def admin_user_points(request, user_id):
-    """GET /api/points/admin/users/<user_id>/ — admin views any user's history."""
+    """GET /api/points/admin/users/<user_id>/"""
     try:
         user = User.objects.get(id=user_id)
     except User.DoesNotExist:
@@ -129,7 +201,6 @@ def admin_user_points(request, user_id):
     summary      = get_points_summary(user)
     transactions = PointTransaction.objects.filter(user=user)
     serializer   = PointTransactionSerializer(transactions, many=True)
-
     return Response({
         "user":      f"{user.full_name} ({user.email})",
         "total":     summary["total"],
@@ -157,13 +228,46 @@ def admin_award_points(request):
         reason = serializer.validated_data["reason"],
         note   = serializer.validated_data.get("note", ""),
     )
-
     action = "awarded" if transaction.points >= 0 else "deducted"
     return Response({
         "message":     f"{abs(transaction.points)} points {action} for {user.full_name}.",
         "transaction": PointTransactionSerializer(transaction).data,
         "new_total":   get_points_summary(user)["total"],
     }, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
+@permission_classes([IsAdmin])
+def admin_all_transactions(request):
+    """
+    GET /api/points/admin/transactions/
+    All transactions across all users — filterable by user or reason.
+    Query params: ?user_id=<id> &reason=<reason>
+    """
+    qs = PointTransaction.objects.select_related("user", "event").order_by("-created_at")
+
+    user_id = request.query_params.get("user_id")
+    reason  = request.query_params.get("reason")
+    if user_id:
+        qs = qs.filter(user_id=user_id)
+    if reason:
+        qs = qs.filter(reason=reason)
+
+    data = []
+    for t in qs[:200]:   # cap at 200 for performance
+        data.append({
+            "id":          t.id,
+            "user_id":     t.user_id,
+            "user_name":   t.user.full_name,
+            "user_email":  t.user.email,
+            "points":      t.points,
+            "reason":      t.reason,
+            "reason_label": dict(PointTransaction.REASON_CHOICES).get(t.reason, t.reason),
+            "note":        t.note,
+            "event_title": t.event.title if t.event else None,
+            "created_at":  t.created_at,
+        })
+    return Response({"count": qs.count(), "results": data})
 
 
 @api_view(["GET"])

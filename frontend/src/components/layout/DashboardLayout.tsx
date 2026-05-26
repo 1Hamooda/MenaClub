@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Calendar, Bell, Briefcase, Users, BarChart3,
   FileText, LogOut, Menu, X, ChevronRight,
-  ClipboardCheck, Award, Send, Key, Download, Globe,
+  ClipboardCheck, Award, Send, Key, Download, Globe, Zap,
 } from "lucide-react";
 import { getMe } from "@/services/authService";
 import api from "@/services/api";
@@ -45,6 +45,7 @@ const navConfig: Record<Role, NavItem[]> = {
     { label: "Announcements", href: "/admin/announcements",  icon: Send },
     { label: "Notifications", href: "/admin/notifications",  icon: Bell, isNotifications: true },
     { label: "Attendance",    href: "/admin/attendance",     icon: Key },
+    { label: "Points", href: "/admin/points", icon: Zap },
     { label: "Certificates",  href: "/admin/certificates",   icon: Download },
     { label: "Analytics",     href: "/admin/analytics",      icon: BarChart3 },
   ],

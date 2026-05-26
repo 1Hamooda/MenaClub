@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Player } from "@lottiefiles/react-lottie-player";
 import { motion } from "framer-motion";
@@ -10,6 +10,7 @@ import AnimatedButton from "@/components/ui/AnimatedButton";
 import AnimatedInput from "@/components/ui/AnimatedInput";
 import PageWrapper from "@/components/ui/PageWrapper";
 import { register } from "@/services/authService";
+import api from "@/services/api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -22,6 +23,24 @@ export default function RegisterPage() {
   const [error,     setError]     = useState("");
   const [loading,   setLoading]   = useState(false);
   const [pending,   setPending]   = useState(false);
+
+  // ── Capture ?ref=<token> on first visit and stash for later ───
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) sessionStorage.setItem("share_ref", ref);
+  }, []);
+
+  // ── Helper: redeem share token after successful registration ──
+  async function redeemShareToken() {
+    const ref = sessionStorage.getItem("share_ref");
+    if (!ref) return;
+    try {
+      await api.post("/api/points/share/redeem/", { token: ref });
+    } catch { /* silent — already rewarded or own token */ }
+    sessionStorage.removeItem("share_ref");
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,10 +57,15 @@ export default function RegisterPage() {
       });
 
       if (result.pending) {
+        // Member account pending approval — try redeem anyway
+        // (server should accept since user exists, just unapproved)
+        await redeemShareToken();
         setPending(true);
         return;
       }
 
+      // Volunteer auto-logged in → redeem then redirect
+      await redeemShareToken();
       router.push("/volunteer/dashboard");
 
     } catch (err: any) {
@@ -59,7 +83,6 @@ export default function RegisterPage() {
     }
   }
 
-  // Pending approval screen
   if (pending) {
     return (
       <PageWrapper>

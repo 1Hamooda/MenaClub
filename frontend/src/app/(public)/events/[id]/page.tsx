@@ -119,6 +119,8 @@ export default function EventDetailPage() {
   const [showModal,    setShowModal]    = useState(false);
   const [motivation,   setMotivation]   = useState("");
   const [copied,       setCopied]       = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareToast,   setShareToast]   = useState("");
 
   useEffect(() => {
     async function fetchEvent() {
@@ -131,6 +133,14 @@ export default function EventDetailPage() {
     if (eventId) fetchEvent();
   }, [eventId]);
 
+  // ── Capture ?ref=<token> on first visit and stash it ──────────
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) sessionStorage.setItem("share_ref", ref);
+  }, []);
+
   async function handleApply() {
     if (!event) return;
     setApplyError(""); setApplyLoading(true);
@@ -140,6 +150,15 @@ export default function EventDetailPage() {
         motivation:     motivation.trim(),
       });
       setApplied(true); setShowModal(false);
+
+      // ── Redeem share token if present ───────────────────────
+      const ref = sessionStorage.getItem("share_ref");
+      if (ref) {
+        try {
+          await api.post("/api/points/share/redeem/", { token: ref });
+        } catch { /* silent — already rewarded or own token */ }
+        sessionStorage.removeItem("share_ref");
+      }
     } catch (err: any) {
       if (err?.response?.status === 401 || err?.response?.status === 403) {
         router.push("/login"); return;
@@ -148,14 +167,36 @@ export default function EventDetailPage() {
     } finally { setApplyLoading(false); }
   }
 
-  function handleShare() {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  // ── Generate a tracked share link and copy it ─────────────────
+  async function handleShare() {
+    if (!event) return;
+    const token = typeof localStorage !== "undefined" && localStorage.getItem("access_token");
+    if (!token) {
+      // not logged in → fall back to copying the raw URL
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      return;
+    }
+    setShareLoading(true);
+    try {
+      const { data } = await api.post("/api/points/share/generate/", { event_id: event.id });
+      const url = `${window.location.origin}${data.share_url}`;
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setShareToast("Link copied! You earn +75 pts when someone joins via your link.");
+      setTimeout(() => { setCopied(false); setShareToast(""); }, 4000);
+    } catch {
+      // fallback: plain URL
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } finally {
+      setShareLoading(false);
+    }
   }
 
   function openApplyModal() {
-    // If not logged in, go to login
     const token = typeof localStorage !== "undefined" && localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
     setApplyError(""); setMotivation("");
@@ -180,11 +221,20 @@ export default function EventDetailPage() {
   const gradient  = CATEGORY_GRADIENTS[event.category] || CATEGORY_GRADIENTS.other;
   const isClosed  = event.status === "closed" || event.status === "archived" || event.spots_remaining === 0;
   const hasRoles  = event.roles_available && event.roles_available.length > 0;
-  // Can apply if: event is open AND (no roles defined OR a role is selected)
   const canApply  = !isClosed && !applied && (!hasRoles || !!selectedRole);
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#ffffff" }}>
+
+      {/* Share toast */}
+      <AnimatePresence>
+        {shareToast && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            style={{ position: "fixed", top: "24px", right: "24px", zIndex: 100, backgroundColor: "#0d0b08", color: "#ffffff", padding: "12px 18px", borderRadius: "12px", fontSize: "0.85rem", fontWeight: "500", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", maxWidth: "320px" }}>
+            {shareToast}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Apply Modal */}
       {showModal && (
@@ -316,7 +366,7 @@ export default function EventDetailPage() {
               </span>
             </div>
 
-            {/* Role selector — only shown when roles exist */}
+            {/* Role selector */}
             {hasRoles && !applied && !isClosed && (
               <>
                 <h3 style={{ fontSize: "1rem", fontWeight: "800", color: "#0d0b08", marginBottom: "14px" }}>Choose a Role</h3>
@@ -377,14 +427,19 @@ export default function EventDetailPage() {
               )}
             </AnimatePresence>
 
-            {/* Share button — copies link and shows feedback */}
+            {/* Share button — generates tracked link via API */}
             <motion.button
               whileHover={{ backgroundColor: copied ? "#dcfce7" : "#f0f9f7" }}
               whileTap={{ scale: 0.97 }}
               onClick={handleShare}
-              style={{ width: "100%", marginTop: "12px", padding: "10px", borderRadius: "12px", border: `1px solid ${copied ? "#86efac" : "#e5e7eb"}`, backgroundColor: copied ? "#f0fdf4" : "#ffffff", color: copied ? "#15803d" : "#6b7280", fontSize: "0.8rem", fontWeight: "600", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", transition: "all 0.2s" }}>
-              {copied ? <><Check size={14} /> Copied!</> : <><Share2 size={14} /> Share Event</>}
+              disabled={shareLoading}
+              style={{ width: "100%", marginTop: "12px", padding: "10px", borderRadius: "12px", border: `1px solid ${copied ? "#86efac" : "#e5e7eb"}`, backgroundColor: copied ? "#f0fdf4" : "#ffffff", color: copied ? "#15803d" : "#6b7280", fontSize: "0.8rem", fontWeight: "600", cursor: shareLoading ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", transition: "all 0.2s", opacity: shareLoading ? 0.7 : 1 }}>
+              {shareLoading ? <>Generating link...</> : copied ? <><Check size={14} /> Copied!</> : <><Share2 size={14} /> Share & Earn 75 pts</>}
             </motion.button>
+
+            <p style={{ fontSize: "0.7rem", color: "#9ca3af", textAlign: "center", marginTop: "8px" }}>
+              Earn +75 pts when someone joins via your link
+            </p>
           </motion.div>
         </div>
       </div>
