@@ -3,6 +3,11 @@ from rest_framework.decorators       import api_view, permission_classes
 from rest_framework.permissions      import AllowAny, IsAuthenticated
 from rest_framework.response         import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators       import api_view, permission_classes
+from rest_framework.permissions      import AllowAny
+from rest_framework.response         import Response
+from django.db.models                import Count
+from django.utils                    import timezone
 
 from .models       import User
 from .serializers  import (
@@ -185,3 +190,31 @@ def admin_change_role(request, user_id):
         user.save()
         return Response({"message": f"{user.full_name}'s role changed to {user.role}.", "user": AdminUserSerializer(user, context={"request": request}).data})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def public_stats(request):
+    """
+    GET /api/stats/public/
+    Public endpoint — no auth required.
+    Returns aggregate counts for the home page hero stats bar.
+    """
+    from apps.users.models        import User
+    from apps.events.models       import Event
+    from apps.certificates.models import Certificate
+ 
+    members_count    = User.objects.filter(role="member",    is_active=True).count()
+    volunteers_count = User.objects.filter(role="volunteer", is_active=True).count()
+ 
+    # Events hosted = past or current events (anything not in the future)
+    events_hosted = Event.objects.filter(date__lte=timezone.now().date()).count()
+ 
+    # Certificates issued (excludes revoked)
+    certificates_issued = Certificate.objects.filter(status="issued").count()
+ 
+    return Response({
+        "members":             members_count,
+        "volunteers":          volunteers_count,
+        "events_hosted":       events_hosted,
+        "certificates_issued": certificates_issued,
+    })
